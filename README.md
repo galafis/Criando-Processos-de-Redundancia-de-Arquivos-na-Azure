@@ -1,3 +1,5 @@
+Atividade proposta pela **DIO** dentro do meu programa de aprendizado em **Microsoft AI for Tech - Azure Databricks**
+
 # Criando Processos de Redundância de Arquivos no Microsoft Azure
 
 ## Introdução
@@ -317,7 +319,7 @@ A implementação deste projeto não apenas resulta em uma solução técnica, m
 
 ## Conclusão
 
-Este projeto demonstrou a implementação de um processo completo de redundância de arquivos utilizando o Azure Data Factory, conectando ambientes on-premises com a nuvem Azure. A solução criada permite extrair dados de uma tabela SQL Server local, transferi-los para o Azure Data Lake Storage e organizá-los como arquivos .TXT em uma estrutura de camadas.
+Este projeto, feito por mim, demonstrou a implementação de um processo completo de redundância de arquivos utilizando o Azure Data Factory, conectando ambientes on-premises com a nuvem Azure. A solução criada permite extrair dados de uma tabela SQL Server local, transferi-los para o Azure Data Lake Storage e organizá-los como arquivos .TXT em uma estrutura de camadas.
 
 A abordagem adotada não apenas garante a redundância dos dados, mas também estabelece uma base sólida para futuras iniciativas de análise e processamento de dados na nuvem. A utilização de serviços gerenciados do Azure reduz a complexidade operacional, permitindo que as organizações foquem no valor dos dados em vez da infraestrutura subjacente.
 
