@@ -332,3 +332,23 @@ As habilidades e conhecimentos adquiridos neste projeto são diretamente aplicá
 - [Melhores práticas para o Azure Data Factory](https://docs.microsoft.com/azure/data-factory/data-factory-best-practices)
 - [Documentação do Azure Data Lake Storage Gen2](https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-introduction)
 - [Padrões de arquitetura de dados na nuvem](https://docs.microsoft.com/azure/architecture/patterns/)
+
+
+## 📋 Descrição
+
+Descreva aqui o conteúdo desta seção.
+
+
+## 📦 Instalação
+
+Descreva aqui o conteúdo desta seção.
+
+
+## 💻 Uso
+
+Descreva aqui o conteúdo desta seção.
+
+
+## 📄 Licença
+
+Descreva aqui o conteúdo desta seção.
