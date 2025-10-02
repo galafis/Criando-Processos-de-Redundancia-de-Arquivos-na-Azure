@@ -2,6 +2,8 @@ Atividade proposta pela **DIO** dentro do meu programa de aprendizado em **Micro
 
 # Criando Processos de Redundância de Arquivos no Microsoft Azure
 
+![Imagem Hero](images/hero_image.png)
+
 ## Introdução
 
 Este projeto documenta a implementação de um processo completo de redundância de arquivos no Microsoft Azure utilizando o Azure Data Factory (ADF). A solução conecta ambientes on-premises com recursos na nuvem Azure, permitindo a movimentação segura e eficiente de dados entre esses ambientes. O foco principal é criar um fluxo automatizado que extrai dados de uma tabela SQL Server on-premises, transfere-os para o Azure Data Lake Storage (ADLS) e os converte em arquivos .TXT organizados em uma estrutura de camadas (raw/bronze).
@@ -292,7 +294,7 @@ Embora capturas de tela reais não possam ser incorporadas diretamente aqui, est
     *   Clicamos em "OK".
 
 5.  **Configuração da Atividade de Cópia (Sink):**
-    *   *Descrição Visual:* No canvas do pipeline "SqlToAdlsRedundancyPipeline", selecionamos a atividade "CopySqlToAdls". Na aba "Sink", com o dataset `AdlsTextFile` selecionado, localizamos o campo "File path" dentro das configurações do dataset. Ao lado do campo do nome do arquivo, clicamos em "Add dynamic content [Alt+P]". Uma janela "Pipeline expression builder" abre. Inserimos a expressão para o nome dinâmico, por exemplo: `@{concat('dados_vendas_',utcnow('yyyyMMdd_HHmmss'),'.txt')}`. Clicamos em "Finish".
+    *   *Descrição Visual:* No canvas do pipeline "SqlToAdlsRedundancyPipeline", selecionamos a atividade "CopySqlToAdls". Na aba "Sink", com o dataset `AdlsTextFile` selecionado, localizamos o campo "File path" dentro das configurações do dataset. Ao lado do campo do nome do arquivo, clicamos em "Add dynamic content [Alt+P]". Uma janela "Pipeline expression builder" abre. Inserimos a expressão para o nome dinâmico, por exemplo: `@{concat(\'dados_vendas_\',utcnow(\'yyyyMMdd_HHmmss\'),\'.txt\')}`. Clicamos em "Finish".
 
 6.  **Monitoramento da Execução:**
     *   *Descrição Visual:* No ADF Studio (aba "Monitor" > "Pipeline runs"), vemos uma lista de execuções de pipeline. A linha correspondente à nossa execução manual do "SqlToAdlsRedundancyPipeline" mostra o status "Succeeded" em verde. Clicamos no nome do pipeline. A visualização detalhada mostra a atividade "CopySqlToAdls" também com status "Succeeded". Clicamos no ícone de óculos ("Details") na linha da atividade. Uma janela pop-up exibe detalhes como "Data read", "Data written", "Files read", "Files written", "Throughput", "Duration", etc.
@@ -313,7 +315,7 @@ A implementação deste projeto não apenas resulta em uma solução técnica, m
 
 *   **Implicações de Custo Não Óbvias:** Embora a execução de pipelines seja um custo direto, a escolha da arquitetura impacta outros custos. Usar SHIR não tem custo direto, mas consome recursos da máquina host. Armazenar dados no ADLS tem um custo, e o formato (TXT vs. Parquet comprimido) afeta tanto o custo de armazenamento quanto o custo de processamento subsequente. A frequência de execução dos pipelines também é um fator direto no custo total da solução.
 
-*   **Evolução para Processamento Incremental:** A redundância total (copiar a tabela inteira a cada execução) é simples, mas ineficiente para tabelas grandes. Um aprendizado chave é a necessidade de evoluir para cargas incrementais. Isso envolveria identificar novas linhas ou linhas modificadas na origem (usando colunas de data/hora de modificação, Change Data Capture - CDC, ou tabelas de controle) e copiar apenas o delta. O ADF suporta padrões para isso, como o uso de "lookup activities" para encontrar o último valor carregado (marca d'água) e filtrar a consulta de origem.
+*   **Evolução para Processamento Incremental:** A redundância total (copiar a tabela inteira a cada execução) é simples, mas ineficiente para tabelas grandes. Um aprendizado chave é a necessidade de evoluir para cargas incrementais. Isso envolveria identificar novas linhas ou linhas modificadas na origem (usando colunas de data/hora de modificação, Change Data Capture - CDC, ou tabelas de controle) e copiar apenas o delta. O ADF suporta padrões para isso, como o uso de "lookup activities" para encontrar o último valor carregado (marca d\'água) e filtrar a consulta de origem.
 
 *   **Segurança em Profundidade:** A configuração inicial pode usar autenticação SQL simples, mas aprendemos a importância de migrar para práticas mais seguras, como o uso do Azure Key Vault para armazenar senhas e strings de conexão, e, idealmente, usar autenticação baseada em identidade (Managed Identity do ADF) sempre que possível para acessar recursos Azure como o ADLS e o SQL Azure, eliminando a necessidade de gerenciar credenciais.
 
@@ -352,3 +354,364 @@ Descreva aqui o conteúdo desta seção.
 ## 📄 Licença
 
 Descreva aqui o conteúdo desta seção.
+
+
+---
+
+Activity proposed by **DIO** within my learning program in **Microsoft AI for Tech - Azure Databricks**
+
+# Creating File Redundancy Processes in Microsoft Azure
+
+![Hero Image](images/hero_image.png)
+
+## Introduction
+
+This project documents the implementation of a complete file redundancy process in Microsoft Azure using Azure Data Factory (ADF). The solution connects on-premises environments with Azure cloud resources, allowing for the secure and efficient movement of data between these environments. The main focus is to create an automated flow that extracts data from an on-premises SQL Server table, transfers it to Azure Data Lake Storage (ADLS), and converts it into .TXT files organized in a layered structure (raw/bronze).
+
+Data redundancy is an essential practice to ensure the availability, security, and integrity of information in corporate environments. By implementing this project, you will be creating a solution that not only protects data against loss but also facilitates its use in different contexts and applications in the cloud.
+
+## Project Objective
+
+The main objective of this project is to establish an automated and reliable process for creating data redundancy between on-premises environments and the Azure cloud. Specifically, we aim to:
+
+1. Configure the necessary infrastructure in Azure Data Factory to connect on-premises and cloud environments
+2. Implement data extraction from a local SQL Server table
+3. Transfer this data to Azure Data Lake Storage
+4. Convert the data into .TXT files organized in a layered structure
+5. Validate, publish, and execute the data pipeline
+6. Analyze performance and apply best practices
+
+At the end of this project, we will have a functional solution that can be adapted for different data redundancy scenarios, contributing to business continuity and disaster recovery strategies.
+
+## Prerequisites
+
+To implement this project, the following components and knowledge are required:
+
+### Azure Resources
+- An active Microsoft Azure subscription
+- Access to create and manage Azure Data Factory resources
+- Permission to create and configure storage resources (Azure Data Lake Storage Gen2)
+- Ability to create and manage database resources (Azure SQL Database)
+
+### On-premises Environment
+- A local SQL Server with a data table for testing
+- Administrative permissions on the server to configure the Integration Runtime
+- Network connectivity between the local environment and Azure
+
+### Technical Knowledge
+- Basic familiarity with the Azure portal and its services
+- Understanding of SQL database concepts
+- Notions of ETL (Extract, Transform, Load) and data pipelines
+
+## Solution Architecture
+
+The solution implemented in this project follows the architecture below:
+
+1. **On-premises Environment**:
+   - SQL Server with source data table
+   - Self-hosted Integration Runtime (SHIR) for secure connectivity with Azure
+
+2. **Microsoft Azure**:
+   - Azure Data Factory for data flow orchestration
+   - Azure SQL Database for optional cloud data storage
+   - Azure Data Lake Storage Gen2 for storing .TXT files
+
+3. **Data Flow**:
+   - Data extraction from the on-premises SQL Server table
+   - Transfer to Azure via Integration Runtime
+   - Storage and conversion to .TXT files in Data Lake
+   - Organization into layered structure (raw/bronze)
+
+This architecture provides a secure and efficient data flow between the local environment and the cloud, ensuring data redundancy and availability.
+
+## Step-by-Step Implementation
+
+### 1. Self-Hosted Integration Runtime (SHIR) Configuration
+
+The Self-Hosted Integration Runtime is an essential component for connecting Azure Data Factory to resources in private networks, such as on-premises SQL servers. It acts as a secure bridge between environments, allowing data movement without directly exposing local servers to the internet.
+
+To configure SHIR:
+
+1. **Create the Integration Runtime in Azure Data Factory**:
+   - In the Azure portal, access your Azure Data Factory instance
+   - Navigate to "Manage" > "Integration Runtimes" > "New"
+   - Select "Self-Hosted" as the Integration Runtime type
+   - Provide a descriptive name (e.g., "OnPremisesIntegrationRuntime")
+   - Copy the generated authentication key
+
+2. **Install the Integration Runtime on the on-premises server**:
+   - Download the Integration Runtime installer on the server that has access to SQL Server
+   - Run the installer and follow the setup wizard
+   - When prompted, enter the authentication key copied earlier
+   - Wait for registration to complete and confirmation that the Integration Runtime is online
+
+3. **Verify connectivity**:
+   - In the Azure portal, confirm that the Integration Runtime status is "Running"
+   - Test connectivity to the local SQL Server using the diagnostic option
+
+SHIR is now configured and ready to facilitate secure data transfer between the on-premises environment and Azure.
+
+### 2. Linked Services Creation
+
+Linked Services in Azure Data Factory function as connections to data sources and destinations. In this project, we need to configure three main Linked Services:
+
+1. **Linked Service for On-premises SQL Server**:
+   - In ADF Studio, navigate to "Manage" > "Linked Services" > "New"
+   - Select "SQL Server" as the type
+   - Configure the following parameters:
+     - Name: "SqlServerOnPremises"
+     - Integration Runtime: select the previously created SHIR
+     - Server name: local SQL server address
+     - Database name: database containing the source table
+     - Authentication type: Windows or SQL Authentication
+     - Credentials: user and password with appropriate permissions
+   - Test the connection before saving
+
+2. **Linked Service for Azure SQL Database (optional)**:
+   - Select "Azure SQL Database" as the type
+   - Configure the following parameters:
+     - Name: "AzureSqlDatabase"
+     - Selection method: "From Azure subscription"
+     - Azure subscription: select your subscription
+     - Server name: select or create an Azure SQL server
+     - Database name: select or create a database
+     - Authentication type: SQL Authentication
+     - Credentials: Azure database user and password
+   - Test the connection before saving
+
+3. **Linked Service for Azure Data Lake Storage Gen2**:
+   - Select "Azure Data Lake Storage Gen2" as the type
+   - Configure the following parameters:
+     - Name: "AzureDataLakeStorage"
+     - Selection method: "From Azure subscription"
+     - Azure subscription: select your subscription
+     - Storage account name: select or create an ADLS Gen2 account
+     - Test the connection before saving
+
+These Linked Services establish the necessary connections for data flow between the different sources and destinations of our pipeline.
+
+### 3. Datasets Creation
+
+Datasets in Azure Data Factory represent data structures within data sources. For our project, we need to create the following datasets:
+
+1. **Dataset for On-premises SQL Server table**:
+   - In ADF Studio, navigate to "Author" > "+" > "Dataset"
+   - Select "SQL Server" as the type
+   - Configure the following parameters:
+     - Name: "SqlServerTable"
+     - Linked Service: select the "SqlServerOnPremises" Linked Service
+     - Table name: select the source table (e.g., "dbo.Customers")
+   - Preview data to confirm correct access
+
+2. **Dataset for Azure Data Lake Storage (.TXT format)**:
+   - Select "DelimitedText" as the type
+   - Configure the following parameters:
+     - Name: "AdlsTextFile"
+     - Linked Service: select the "AzureDataLakeStorage" Linked Service
+     - File path: specify the path in the format "container/raw/data.txt"
+     - First row as header: "True"
+     - Delimiter: select the appropriate delimiter (e.g., comma)
+   - Define the schema as needed
+
+These datasets define the data structures that will be used in the copy pipeline, specifying both the source (SQL table) and the destination (.TXT file in Data Lake).
+
+### 4. Copy Pipeline Creation
+
+The Pipeline is the central component of Azure Data Factory, orchestrating data flow between source and destination. For our redundancy project, we will create a pipeline with a copy activity:
+
+1. **Create a new Pipeline**:
+   - In ADF Studio, navigate to "Author" > "+" > "Pipeline"
+   - Name the pipeline "SqlToAdlsRedundancyPipeline"
+
+2. **Add copy activity**:
+   - From the toolbox, drag the "Copy data" activity to the canvas
+   - Name the activity "CopySqlToAdls"
+
+3. **Configure source**:
+   - In the "Source" tab, select the "SqlServerTable" dataset
+   - If necessary, configure a custom SQL query to filter data
+
+4. **Configure destination**:
+   - In the "Sink" tab, select the "AdlsTextFile" dataset
+   - Configure write options:
+     - Copy option: "Add dynamic content" to define the dynamic path
+     - File name format: include date/time for versioning (e.g., "data_{yyyy-MM-dd_HH-mm}.txt")
+
+5. **Configure mappings**:
+   - In the "Mapping" tab, verify that source columns are correctly mapped to the destination
+   - Adjust data types as needed
+
+6. **Configure additional settings**:
+   - In the "Settings" tab, configure:
+     - Fault tolerance: define behavior in case of errors
+     - Parallelism: adjust according to data volume needs
+     - Activity log: enable for detailed monitoring
+
+7. **Add dynamic parameters (optional)**:
+   - Configure pipeline parameters to make the solution more flexible
+   - Use expressions to define dynamic paths based on date/time
+
+The pipeline is now configured to extract data from the on-premises SQL Server table and transfer it to Azure Data Lake Storage as .TXT files, following the defined layered structure.
+
+### 5. Validation, Publishing, and Execution
+
+After configuring all components, it's time to validate, publish, and execute the pipeline:
+
+1. **Validate the pipeline**:
+   - Click the "Validate" button to check for configuration errors
+   - Correct any identified issues
+
+2. **Publish changes**:
+   - Click the "Publish all" button to publish all components (Linked Services, Datasets, Pipeline)
+   - Confirm publication and wait for completion
+
+3. **Execute the pipeline**:
+   - Click "Add trigger" > "Trigger now" to manually execute the pipeline
+   - Alternatively, configure a recurring trigger:
+     - "Add trigger" > "New/Edit" > configure the desired schedule (e.g., daily at 2 AM)
+
+4. **Monitor execution**:
+   - Navigate to the "Monitor" tab to track execution progress
+   - Check status, duration, and details of each activity
+   - In case of failures, analyze error logs to identify and correct problems
+
+5. **Verify results**:
+   - Access Azure Data Lake Storage to confirm that .TXT files were created correctly
+   - Verify that the folder structure (raw/bronze) is as expected
+   - Open some files to confirm that data was transferred correctly
+
+Successful pipeline execution confirms that the redundancy process is working correctly, transferring data from the on-premises environment to Azure securely and organized.
+
+## Performance Analysis and Best Practices
+
+To ensure that the redundancy process is efficient and scalable, it is important to analyze performance and apply best practices:
+
+### Performance Analysis
+
+1. **Execution metrics**:
+   - Analyze the total pipeline execution time
+   - Check data transfer rate (MB/s)
+   - Identify potential bottlenecks in the process
+
+2. **Resource optimization**:
+   - Adjust copy activity parallelism according to data volume
+   - Configure appropriate Integration Runtime size
+   - Use compression to reduce the volume of transferred data
+
+### Best Practices
+
+1. **Security**:
+   - Use Key Vault to store credentials and secrets
+   - Implement role-based access control (RBAC) for Azure resources
+   - Keep the Integration Runtime updated with the latest security patches
+
+2. **Monitoring**:
+   - Configure alerts for pipeline failures
+   - Implement detailed logs for diagnosis
+   - Use Azure Monitor to track long-term metrics
+
+3. **Scalability**:
+   - Design the solution considering future data volume growth
+   - Use partitioning to handle large datasets
+   - Consider implementing incremental processing to reduce load
+
+4. **Recovery**:
+   - Implement retry mechanisms to handle temporary failures
+   - Configure checkpoints to allow resumption of interrupted transfers
+   - Document recovery procedures for different failure scenarios
+
+Applying these practices ensures that the redundancy process is not only functional but also robust, secure, and efficient.
+
+## Prints (Enhanced Visual Descriptions)
+
+Although actual screenshots cannot be directly incorporated here, this enhanced section aims to provide even more detailed textual descriptions, simulating the visual experience of navigating the Azure Portal and ADF Studio during configuration:
+
+1.  **SHIR Configuration (Azure Portal):**
+    *   *Visual Description:* Imagine the "Integration Runtimes" screen in ADF Studio ("Manage" tab). A list of existing runtimes is displayed. We click on "+ New". A side window appears, showing options like "Azure, Self-Hosted" and "Azure-SSIS". We select "Self-Hosted" and click "Continue". On the next screen, we enter the name "OnPremisesIntegrationRuntime" and an optional description. We click "Create". A new pop-up window appears with two options: "Option 1: Express setup" and "Option 2: Manual setup". Below, we see "Authentication key 1" and "Authentication key 2" (obfuscated, with a copy button next to them). We copy Key 1.
+
+2.  **SHIR Installation (On-Premises Server):**
+    *   *Visual Description:* We visualize the "Microsoft Integration Runtime" installation wizard on a Windows Server machine. After accepting the terms, the installer copies the files. The final screen is the "Integration Runtime Configuration Manager". A prominent text field asks for the "Authentication key". We paste the key copied from the Azure portal. We click "Register". After a few moments, a green checkmark appears next to "Registration", and the node status changes to "Running" and "Connected to cloud service".
+
+3.  **Linked Service Creation (On-Premises SQL):**
+    *   *Visual Description:* In ADF Studio ("Manage" > "Linked Services" tab), we click on "+ New". A grid of data source icons appears. We type "SQL Server" in the search and select the corresponding icon. We click "Continue". On the configuration screen, we fill in:
+        *   Name: `SqlServerOnPremises`
+        *   Description: (Optional)
+        *   Connect via integration runtime: We select `OnPremisesIntegrationRuntime` from the dropdown list.
+        *   Server name: We type the name or IP of the local SQL server (e.g., `SRV-SQL-01`).
+        *   Database name: We type the database name (e.g., `SalesDB`).
+        *   Authentication type: We select "SQL Authentication".
+        *   User name: We type the SQL user (e.g., `adf_user`).
+        *   Password: We select "Azure Key Vault" (ideally) or enter the password directly.
+    *   We click "Test connection". After a few seconds, a "Connection successful" message appears in green. We click "Create".
+
+4.  **Dataset Creation (ADLS - TXT):**
+    *   *Visual Description:* In ADF Studio ("Author" > "+" > "Dataset" tab), we select "Azure Data Lake Storage Gen2" and then "DelimitedText". We click "Continue". On the "Set properties" screen:
+        *   Name: `AdlsTextFile`
+        *   Linked service: We select `AzureDataLakeStorage`.
+        *   File path: We click "Browse". We navigate to the desired container (e.g., `datalake`) and type `raw/` in the path. We leave the file name blank for now (it will be dynamic in the pipeline).
+        *   First row as header: We check the checkbox.
+        *   Import schema: We select "None" (or "From connection/store" if an example file exists).
+    *   We click "OK".
+
+5.  **Copy Activity Configuration (Sink):**
+    *   *Visual Description:* On the "SqlToAdlsRedundancyPipeline" pipeline canvas, we select the "CopySqlToAdls" activity. In the "Sink" tab, with the `AdlsTextFile` dataset selected, we locate the "File path" field within the dataset settings. Next to the file name field, we click "Add dynamic content [Alt+P]". A "Pipeline expression builder" window opens. We enter the expression for the dynamic name, for example: `@{concat(\'sales_data_\',utcnow(\'yyyyMMdd_HHmmss\'),\'.txt\')}`. We click "Finish".
+
+6.  **Execution Monitoring:**
+    *   *Visual Description:* In ADF Studio ("Monitor" > "Pipeline runs" tab), we see a list of pipeline runs. The row corresponding to our manual execution of "SqlToAdlsRedundancyPipeline" shows the status "Succeeded" in green. We click on the pipeline name. The detailed view shows the "CopySqlToAdls" activity also with "Succeeded" status. We click the glasses icon ("Details") on the activity row. A pop-up window displays details such as "Data read", "Data written", "Files read", "Files written", "Throughput", "Duration", etc.
+
+These enhanced visual descriptions aim to provide a clearer mental image of the key interfaces and configurations encountered during the project implementation.
+
+## In-depth Insights and Learnings
+
+Implementing this project not only results in a technical solution but also generates important learnings about the Azure platform and data engineering practices:
+
+*   **Complexity of Managed Hybrid Integration:** The Self-Hosted Integration Runtime (SHIR) abstracts much of the complexity of secure connectivity between the cloud and the on-premises environment. However, *managing* SHIR (updates, monitoring host machine resources, high availability with multiple nodes) requires continuous attention. It is clear that while ADF facilitates the connection, responsibility for SHIR infrastructure remains on the on-premises side, requiring capacity planning and maintenance.
+
+*   **The Power of Parameterization:** The ability to use parameters and dynamic expressions in ADF (as seen in dynamic file naming in the Sink) is fundamental for creating reusable and flexible pipelines. We learned that investing time in parameterization from the outset avoids the proliferation of almost identical pipelines and facilitates maintenance. For example, we could parameterize the source table name, the destination container, or even the SQL query, making the pipeline agnostic to specific details.
+
+*   **Layered Architecture in Practice:** Implementing the "raw" (or "bronze") layer in Data Lake is more than just a theoretical concept. In practice, this means configuring the pipeline to dump data *as is* (or with minimal transformation, such as conversion to TXT), preserving source fidelity. This decouples ingestion from transformation, allowing other teams or processes to consume raw data or for future transformations to be applied without re-ingestion. The choice of format (TXT, Parquet, Delta) in the raw layer also has significant implications for cost and subsequent read performance.
+
+*   **Monitoring Beyond Success/Failure:** The ADF "Monitor" tab offers much more than just indicating whether a pipeline worked. Analyzing the details of the copy activity (throughput, DIUs/vCore hours consumed, duration) provides crucial insights for optimization. We learned to correlate data volume with execution time and cost (implicit in DIU consumption), allowing us to identify if SHIR is undersized, if the network is a bottleneck, or if the copy parallelism configuration needs adjustment.
+
+*   **Non-Obvious Cost Implications:** While pipeline execution is a direct cost, architectural choices impact other costs. Using SHIR has no direct cost but consumes host machine resources. Storing data in ADLS has a cost, and the format (TXT vs. compressed Parquet) affects both storage cost and subsequent processing cost. Pipeline execution frequency is also a direct factor in the total solution cost.
+
+*   **Evolution to Incremental Processing:** Full redundancy (copying the entire table with each execution) is simple but inefficient for large tables. A key learning is the need to evolve to incremental loads. This would involve identifying new or modified rows at the source (using modification date/time columns, Change Data Capture - CDC, or control tables) and copying only the delta. ADF supports patterns for this, such as using "lookup activities" to find the last loaded value (watermark) and filter the source query.
+
+*   **Security in Depth:** Initial configuration may use simple SQL authentication, but we learned the importance of migrating to more secure practices, such as using Azure Key Vault to store passwords and connection strings, and, ideally, using identity-based authentication (ADF Managed Identity) whenever possible to access Azure resources like ADLS and Azure SQL, eliminating the need to manage credentials.
+
+## Conclusion
+
+This project, done by me, demonstrated the implementation of a complete file redundancy process using Azure Data Factory, connecting on-premises environments with the Azure cloud. The created solution allows extracting data from a local SQL Server table, transferring it to Azure Data Lake Storage, and organizing it as .TXT files in a layered structure.
+
+The adopted approach not only ensures data redundancy but also establishes a solid foundation for future data analysis and processing initiatives in the cloud. The use of managed Azure services reduces operational complexity, allowing organizations to focus on the value of data instead of the underlying infrastructure.
+
+The skills and knowledge acquired in this project are directly applicable to various data integration scenarios, cloud migration, and business continuity strategies, representing a valuable addition to the portfolio of competencies in Azure technologies.
+
+## References
+
+- [Official Azure Data Factory documentation](https://docs.microsoft.com/azure/data-factory/)
+- [Self-Hosted Integration Runtime configuration guide](https://docs.microsoft.com/azure/data-factory/create-self-hosted-integration-runtime)
+- [Best practices for Azure Data Factory](https://docs.microsoft.com/azure/data-factory/data-factory-best-practices)
+- [Azure Data Lake Storage Gen2 documentation](https://docs.microsoft.com/azure/storage/blobs/data-lake-storage-introduction)
+- [Cloud data architecture patterns](https://docs.microsoft.com/azure/architecture/patterns/)
+
+
+## 📋 Description
+
+Describe the content of this section here.
+
+
+## 📦 Installation
+
+Describe the content of this section here.
+
+
+## 💻 Usage
+
+Describe the content of this section here.
+
+
+## 📄 License
+
+Describe the content of this section here.
+
