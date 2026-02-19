@@ -2,6 +2,17 @@ Atividade proposta pela **DIO** dentro do meu programa de aprendizado em **Micro
 
 # Criando Processos de Redundância de Arquivos no Microsoft Azure
 
+<div align="center">
+
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![SQL](https://img.shields.io/badge/SQL-4479A1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Azure](https://img.shields.io/badge/Azure-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+
+</div>
+
+
 ![Imagem Hero](images/hero_image.png)
 
 ## Introdução
@@ -744,4 +755,30 @@ The skills and knowledge acquired in this project are directly applicable to var
 - [Cloud data architecture patterns](https://docs.microsoft.com/azure/architecture/patterns/)
 
 
+---
 
+## English
+
+### Overview
+
+Criando Processos de Redundância de Arquivos no Microsoft Azure - A project built with JavaScript, SQL, Azure, Docker, developed by Gabriel Demetrios Lafis as part of professional portfolio and continuous learning in Data Science and Software Engineering.
+
+### Key Features
+
+This project demonstrates practical application of modern development concepts including clean code architecture, responsive design patterns, and industry-standard best practices. The implementation showcases real-world problem solving with production-ready code quality.
+
+### How to Run
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/galafis/Criando-Processos-de-Redundancia-de-Arquivos-na-Azure.git
+   ```
+2. Follow the setup instructions in the Portuguese section above.
+
+### License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+Developed by [Gabriel Demetrios Lafis](https://github.com/galafis)
