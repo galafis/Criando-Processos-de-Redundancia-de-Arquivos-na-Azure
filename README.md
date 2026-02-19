@@ -64,6 +64,40 @@ A solução implementada neste projeto segue a seguinte arquitetura:
 
 Esta arquitetura proporciona um fluxo seguro e eficiente de dados entre o ambiente local e a nuvem, garantindo a redundância e a disponibilidade das informações.
 
+```mermaid
+flowchart LR
+    subgraph OnPrem["Ambiente On-premises"]
+        direction TB
+        SQL["SQL Server\n(Tabela de Origem)"]
+        SHIR["Self-Hosted\nIntegration Runtime"]
+        SQL --> SHIR
+    end
+
+    subgraph ADF["Azure Data Factory"]
+        direction TB
+        LS_SQL["Linked Service\nSQL Server"]
+        LS_ADLS["Linked Service\nADLS Gen2"]
+        DS_SQL["Dataset\nSqlServerTable"]
+        DS_TXT["Dataset\nAdlsTextFile"]
+        PIPE["Pipeline\nSqlToAdlsRedundancyPipeline"]
+        COPY["Copy Activity\nCopySqlToAdls"]
+
+        LS_SQL --> DS_SQL
+        LS_ADLS --> DS_TXT
+        DS_SQL --> COPY
+        DS_TXT --> COPY
+        COPY --> PIPE
+    end
+
+    subgraph ADLS["Azure Data Lake Storage Gen2"]
+        direction TB
+        RAW["Camada raw/bronze\n/container/raw/\ndados_{yyyyMMdd}.txt"]
+    end
+
+    SHIR -- "Túnel seguro\nHTTPS" --> ADF
+    PIPE --> ADLS
+```
+
 ## Passo a Passo da Implementação
 
 ### 1. Configuração do Self-Hosted Integration Runtime (SHIR)
@@ -336,26 +370,6 @@ As habilidades e conhecimentos adquiridos neste projeto são diretamente aplicá
 - [Padrões de arquitetura de dados na nuvem](https://docs.microsoft.com/azure/architecture/patterns/)
 
 
-## 📋 Descrição
-
-Descreva aqui o conteúdo desta seção.
-
-
-## 📦 Instalação
-
-Descreva aqui o conteúdo desta seção.
-
-
-## 💻 Uso
-
-Descreva aqui o conteúdo desta seção.
-
-
-## 📄 Licença
-
-Descreva aqui o conteúdo desta seção.
-
-
 ---
 
 Activity proposed by **DIO** within my learning program in **Microsoft AI for Tech - Azure Databricks**
@@ -423,6 +437,40 @@ The solution implemented in this project follows the architecture below:
    - Organization into layered structure (raw/bronze)
 
 This architecture provides a secure and efficient data flow between the local environment and the cloud, ensuring data redundancy and availability.
+
+```mermaid
+flowchart LR
+    subgraph OnPrem["On-premises Environment"]
+        direction TB
+        SQL["SQL Server\n(Source Table)"]
+        SHIR["Self-Hosted\nIntegration Runtime"]
+        SQL --> SHIR
+    end
+
+    subgraph ADF["Azure Data Factory"]
+        direction TB
+        LS_SQL["Linked Service\nSQL Server"]
+        LS_ADLS["Linked Service\nADLS Gen2"]
+        DS_SQL["Dataset\nSqlServerTable"]
+        DS_TXT["Dataset\nAdlsTextFile"]
+        PIPE["Pipeline\nSqlToAdlsRedundancyPipeline"]
+        COPY["Copy Activity\nCopySqlToAdls"]
+
+        LS_SQL --> DS_SQL
+        LS_ADLS --> DS_TXT
+        DS_SQL --> COPY
+        DS_TXT --> COPY
+        COPY --> PIPE
+    end
+
+    subgraph ADLS["Azure Data Lake Storage Gen2"]
+        direction TB
+        RAW["raw/bronze layer\n/container/raw/\ndata_{yyyyMMdd}.txt"]
+    end
+
+    SHIR -- "Secure tunnel\nHTTPS" --> ADF
+    PIPE --> ADLS
+```
 
 ## Step-by-Step Implementation
 
@@ -696,22 +744,4 @@ The skills and knowledge acquired in this project are directly applicable to var
 - [Cloud data architecture patterns](https://docs.microsoft.com/azure/architecture/patterns/)
 
 
-## 📋 Description
-
-Describe the content of this section here.
-
-
-## 📦 Installation
-
-Describe the content of this section here.
-
-
-## 💻 Usage
-
-Describe the content of this section here.
-
-
-## 📄 License
-
-Describe the content of this section here.
 
